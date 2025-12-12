@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL;
+export const API_BASE_URL = "https://assigment-teal-one.vercel.app/apis/";
 
 export async function get(endpoint: string): Promise<any> {
     return await fetch(`${API_BASE_URL}${endpoint}`, {
