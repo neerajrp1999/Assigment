@@ -1,72 +1,41 @@
-import { get } from "@/apis";
-import { useState, useEffect, useCallback, use, useMemo } from "react";
+import { get, post } from "@/apis";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Modal from "../components/Modal";
 import Pagination from "@/components/Pagination";
 import ToggleButton from "@/components/ToggleButton";
 import ListView from "@/components/ListView";
+import AddProductForm from "./AddProductForm";
 import GridView from "@/components/GridView";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-  description: string;
-  createdAt: string;
-  isActive: boolean;
-  tags: string[];
-}
+import type { Product } from "@/type/Product";
 
 function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [update, setUpdate] = useState<Product | undefined>(undefined);
   const [dataBeforeFilter, setDataBeforeFilter] = useState<Product[]>([]);
   const [view, setView] = useState<"list" | "card">("list");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [visible, setVisible] = useState<boolean>(false);
-  const [sendModel, setSendModel] = useState<boolean>(false);
-  const [updateModel, setUpdateModel] = useState<boolean>(false);
-  const [randomCollectorModel, setRandomCollectorModel] =
-    useState<boolean>(false);
-  const [randomCollector, setRandomCollector] = useState<number>(0);
-  const [update, setUpdate] = useState<any | undefined>();
+  const [add_updateModel, setAddUpdateModel] = useState<boolean>(false);
 
-  const [postSending, setPostSending] = useState<boolean>(false);
   const [searchInput, setSearchInput] = useState<string>("");
-  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
-
-  const [selected_filter, setSelectedFilter] = useState<string[]>([]);
 
   const data: Product[] = useMemo(() => {
-    const search = searchInput.trim().toLowerCase();
+    const search = debouncedSearch.trim().toLowerCase();
     const hasSearch = search !== "";
-    const hasFilter = selected_filter.length > 0;
-    const filterSet = new Set(selected_filter);
 
     return dataBeforeFilter.filter((post) => {
-      const postId = post.name.toString();
+      const name = post.name.toString();
       const text = post.description?.toLowerCase() || "";
-      const tags = post.tags || [];
 
       const matchesSearch =
-        !hasSearch || postId.includes(search) || text.includes(search);
+        !hasSearch || name.includes(search) || text.includes(search);
 
-      let matchesFilter = true;
-
-      if (hasFilter) {
-        if (filterSet.has("")) {
-          matchesFilter = tags.length === 0;
-        } else {
-          matchesFilter = tags.some((tag) => filterSet.has(tag));
-        }
-      }
-
-      return matchesSearch && matchesFilter;
+      return matchesSearch;
     });
-  }, [dataBeforeFilter, searchInput, selected_filter]);
+  }, [dataBeforeFilter, debouncedSearch]);
 
-  const POSTS_PER_PAGE = 10;
+  const POSTS_PER_PAGE = 12;
 
   const pageFromUrl = parseInt(searchParams.get("page") || "1") || 1;
 
@@ -85,6 +54,14 @@ function Dashboard() {
     setPageInUrl(currentPage);
   }, [currentPage]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const setPageInUrl = (page: number) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("page", page.toString());
@@ -96,7 +73,7 @@ function Dashboard() {
       const response = await get("get-all-products");
       const result = await response.json();
       if (response.ok) {
-        console.log("Fetched posts:", result);
+        // console.log("Fetched posts:", result);
         setDataBeforeFilter(result || []);
       } else {
         console.error("Failed to fetch posts:", result.message);
@@ -106,26 +83,32 @@ function Dashboard() {
     }
   };
 
-  const togglePostSelection = (postId: number) => {
-    setSelectedPosts((prev) =>
-      prev.includes(postId)
-        ? prev.filter((id) => id !== postId)
-        : [...prev, postId]
-    );
+  const savePost = async (formData: Product) => {
+    try {
+      const response = await post("save-product", formData);
+      const result = await response.json();
+      if (response.ok) {
+        // console.log("Fetched posts:", result);
+        setDataBeforeFilter(result?.products || []);
+        alert(result?.message);
+      } else {
+        console.error("Failed to fetch posts:", result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setAddUpdateModel(false);
+    }
+  };
+  const onEdit = async (post: Product) => {
+    // console.log(post)
+    setUpdate(post);
+    setAddUpdateModel(true);
   };
 
-  function shuffleArray(array: any[]) {
-    const arr = array.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  const handleEditPost = (post: any) => {
-    setUpdateModel(true);
-    setUpdate(post);
+  const onClose = () => {
+    setAddUpdateModel(false);
+    setUpdate(undefined);
   };
 
   return (
@@ -134,7 +117,7 @@ function Dashboard() {
         <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 w-full mb-6">
           <input
             type="text"
-            placeholder="Search by Name or Description or Tag..."
+            placeholder="Search by Name or Description..."
             value={searchInput}
             onChange={(e) => {
               setSearchInput(e.target.value);
@@ -149,7 +132,9 @@ function Dashboard() {
 
           <div className="w-full md:w-1/3 flex justify-center">
             <button
-              onClick={() => setVisible(true)}
+              onClick={() => {
+                setAddUpdateModel(true);
+              }}
               className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 
                rounded-full shadow-sm hover:shadow-md 
                hover:bg-blue-700 active:scale-95 
@@ -172,7 +157,6 @@ function Dashboard() {
               <span className="font-medium tracking-wide">Add New Product</span>
             </button>
           </div>
-
         </div>
 
         <div className="min-h-[300px]  overflow-y-auto">
@@ -181,13 +165,9 @@ function Dashboard() {
           ) : (
             <>
               {view === "list" ? (
-                <ListView currentPosts={currentPosts} />
+                <ListView currentPosts={currentPosts} onEdit={onEdit} />
               ) : (
-                <GridView
-                  currentPosts={currentPosts}
-                  view={view}
-                  setView={setView}
-                />
+                <GridView currentPosts={currentPosts} onEdit={onEdit} />
               )}
             </>
           )}
@@ -201,17 +181,16 @@ function Dashboard() {
           />
         </div>
       </div>
-
-      <Modal
-        isOpen={updateModel}
-        onClose={() => {
-          setUpdateModel(false);
-          setUpdate(undefined);
-        }}
-      >
-        <div className="w-full h-full overflow-y-auto max-h-[90vh]">
-          {/* AddUpdatePost Component */}
-        </div>
+      <Modal isOpen={add_updateModel} onClose={onClose}>
+        <AddProductForm
+          product={update}
+          onClose={onClose}
+          onSubmit={(formData: Product) => {
+            // console.log("New Product:", formData);
+            
+            savePost(formData);
+          }}
+        />
       </Modal>
     </div>
   );

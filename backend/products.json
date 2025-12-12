@@ -587,7 +587,7 @@
   {
     "id": 40,
     "name": "Basketball",
-    "price": 899,
+    "price": 900,
     "category": "Sports",
     "stock": 25,
     "description": "Official size basketball for indoor and outdoor play.",
@@ -598,5 +598,18 @@
       "ball",
       "basketball"
     ]
+  },
+  {
+    "name": "wire",
+    "price": 32,
+    "category": "electric",
+    "stock": 5,
+    "description": "xf",
+    "createdAt": "2025-12-12T05:42:35.326Z",
+    "isActive": true,
+    "tags": [
+      "wire"
+    ],
+    "id": 41
   }
 ]

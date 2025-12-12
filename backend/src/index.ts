@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
-import { loadProducts} from "./dataService.js";
+import { loadProducts, writeFile } from "./dataService.js";
 
 dotenv.config();
 
@@ -24,6 +24,18 @@ app.get("/apis/get-all-products", async (req: Request, res: Response) => {
   }
 });
 
+
+
+
+app.post("/apis/save-product", async (req: Request, res: Response) => {
+  try {
+    const product = req.body;
+    const products = await writeFile("./products.json", product);
+    res.json({ message: "Product saved successfully", products });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load products", error });
+  }
+});
 
 
 

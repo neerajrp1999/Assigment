@@ -1,20 +1,8 @@
-import {
-  PencilIcon,
-} from "@heroicons/react/24/solid";
+import { PencilIcon } from "@heroicons/react/24/solid";
+import type { Product } from "@/type/Product";
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-  description: string;
-  createdAt: string;
-  isActive: boolean;
-  tags: string[];
-}
-
-function Dashboard({ currentPosts }: { currentPosts: Product[] }) {
+function Dashboard({  currentPosts,  onEdit }: {  currentPosts: Product[];  onEdit: (post: Product) => void;
+}) {
   return (
     <div className="mt-6 w-full overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -33,13 +21,14 @@ function Dashboard({ currentPosts }: { currentPosts: Product[] }) {
 
         <tbody>
           {currentPosts.map((post) => (
-            <tr
-              key={post.id}
-              className="border-b hover:bg-gray-50 transition"
-            >
+            <tr key={post.id} className="border-b hover:bg-gray-50 transition">
               <td className="px-4 py-3">{post.id}</td>
               <td className="px-4 py-3 font-medium">{post.name}</td>
-              <td className="px-4 py-3 font-medium">{post.description.length > 50 ? `${post.description.slice(0, 40)}...` : post.description}</td>
+              <td className="px-4 py-3 font-medium">
+                {post.description.length > 50
+                  ? `${post.description.slice(0, 40)}...`
+                  : post.description}
+              </td>
               <td className="px-4 py-3">₹{post.price}</td>
               <td className="px-4 py-3">{post.category}</td>
               <td className="px-4 py-3">{post.stock}</td>
@@ -56,7 +45,7 @@ function Dashboard({ currentPosts }: { currentPosts: Product[] }) {
               </td>
 
               <td className="px-4 py-3 text-right">
-                <button className="p-2 rounded hover:bg-gray-200 transition">
+                <button onClick={()=>{onEdit(post)}} className="p-2 rounded hover:bg-gray-200 transition">
                   <PencilIcon className="h-5 w-5 text-gray-600" />
                 </button>
               </td>
