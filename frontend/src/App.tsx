@@ -5,7 +5,7 @@ import Products from "@/pages/Products";
 
 function App() {
   useEffect(() => {
-    document.title = "My React App";
+    document.title = "Assigment";
   }, []);
 
   return (

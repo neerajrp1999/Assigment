@@ -187,7 +187,7 @@ function Dashboard() {
           onClose={onClose}
           onSubmit={(formData: Product) => {
             // console.log("New Product:", formData);
-            
+
             savePost(formData);
           }}
         />

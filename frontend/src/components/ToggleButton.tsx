@@ -1,6 +1,6 @@
 import { List, Grid3X3 } from "lucide-react";
 
-function Dashboard({  view,  setView,}: {  view: string;  setView: (view: string) => void;}) {
+function Dashboard({  view,  setView }: {  view: string; setView: React.Dispatch<React.SetStateAction<"list" | "card">>; }) {
   return (
     <div className="flex items-center  rounded-full p-1 border w-fit">
       <button
