@@ -7,7 +7,6 @@ import ToggleButton from "@/components/ToggleButton";
 import ListView from "@/components/ListView";
 import GridView from "@/components/GridView";
 
-
 interface Product {
   id: number;
   name: string;
@@ -19,10 +18,6 @@ interface Product {
   isActive: boolean;
   tags: string[];
 }
-
-
-
-
 
 function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +38,7 @@ function Dashboard() {
 
   const [selected_filter, setSelectedFilter] = useState<string[]>([]);
 
-  const data : Product[] = useMemo(() => {
+  const data: Product[] = useMemo(() => {
     const search = searchInput.trim().toLowerCase();
     const hasSearch = search !== "";
     const hasFilter = selected_filter.length > 0;
@@ -71,7 +66,7 @@ function Dashboard() {
     });
   }, [dataBeforeFilter, searchInput, selected_filter]);
 
-  const POSTS_PER_PAGE =  10 ;
+  const POSTS_PER_PAGE = 10;
 
   const pageFromUrl = parseInt(searchParams.get("page") || "1") || 1;
 
@@ -128,81 +123,97 @@ function Dashboard() {
     return arr;
   }
 
-
-  
-
   const handleEditPost = (post: any) => {
     setUpdateModel(true);
     setUpdate(post);
   };
 
-
   return (
-<div className="min-h-screen flex justify-center items-start px-4 py-6">
-  <div className="w-full max-w-[90%] bg-white p-6 rounded-lg">
+    <div className="min-h-screen flex justify-center items-start px-4 py-6">
+      <div className="w-full max-w-[90%] bg-white p-6 rounded-lg">
+        <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 w-full mb-6">
+          <input
+            type="text"
+            placeholder="Search by Name or Description or Tag..."
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full md:w-1/3 border border-gray-300 rounded p-2"
+          />
 
-    {/* Top Controls */}
-    <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4 w-full mb-6">
+          <div className="w-full md:w-1/3 flex justify-center">
+            <ToggleButton view={view} setView={setView} />
+          </div>
 
-      {/* Search Box */}
-      <input
-        type="text"
-        placeholder="Search by Name or Description or Tag..."
-        value={searchInput}
-        onChange={(e) => {setSearchInput(e.target.value); setCurrentPage(1);}}
-        className="w-full md:w-1/3 border border-gray-300 rounded p-2"
-      />
+          <div className="w-full md:w-1/3 flex justify-center">
+            <button
+              onClick={() => setVisible(true)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 
+               rounded-full shadow-sm hover:shadow-md 
+               hover:bg-blue-700 active:scale-95 
+               transition-all duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+              <span className="font-medium tracking-wide">Add New Product</span>
+            </button>
+          </div>
 
-      {/* Toggle View */}
-      <div className="w-full md:w-1/3 flex justify-center">
-        <ToggleButton view={view} setView={setView} />
+        </div>
+
+        <div className="min-h-[300px]  overflow-y-auto">
+          {data.length === 0 ? (
+            <p className="text-gray-600 text-center">No Product available.</p>
+          ) : (
+            <>
+              {view === "list" ? (
+                <ListView currentPosts={currentPosts} />
+              ) : (
+                <GridView
+                  currentPosts={currentPosts}
+                  view={view}
+                  setView={setView}
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={(page: number) => setCurrentPage(page)}
+          />
+        </div>
       </div>
 
-      {/* (Optional Placeholder if needed) */}
-      <div className="w-full md:w-1/3 flex justify-end"></div>
+      <Modal
+        isOpen={updateModel}
+        onClose={() => {
+          setUpdateModel(false);
+          setUpdate(undefined);
+        }}
+      >
+        <div className="w-full h-full overflow-y-auto max-h-[90vh]">
+          {/* AddUpdatePost Component */}
+        </div>
+      </Modal>
     </div>
-
-
-    {/* LIST OR GRID VIEW CONTENT */}
-    <div className="min-h-[300px]  overflow-y-auto">
-      {data.length === 0 ? (
-        <p className="text-gray-600 text-center">No posts available.</p>
-      ) : (
-        <>
-          {view === "list" ? (
-            <ListView currentPosts={currentPosts} />
-          ) : (
-            <GridView  currentPosts={currentPosts} view={view} setView={setView} />
-          )}
-        </>
-      )}
-    </div>
-
-
-    {/* PAGINATION ALWAYS AT BOTTOM */}
-    <div className="mt-8 flex justify-center">
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        setCurrentPage={(page: number) => setCurrentPage(page)}
-      />
-    </div>
-  </div>
-
-  {/* MODAL */}
-  <Modal
-    isOpen={updateModel}
-    onClose={() => {
-      setUpdateModel(false);
-      setUpdate(undefined);
-    }}
-  >
-    <div className="w-full h-full overflow-y-auto max-h-[90vh]">
-      {/* AddUpdatePost Component */}
-    </div>
-  </Modal>
-</div>
-
   );
 }
 
